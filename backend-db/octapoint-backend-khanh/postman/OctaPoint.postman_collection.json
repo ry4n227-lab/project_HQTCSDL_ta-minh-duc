@@ -1,0 +1,58 @@
+{
+  "info": {
+    "name": "OctaPoint Backend - Khánh",
+    "_postman_id": "7c56f9ad-5e30-4b50-bb1c-2fddaa3b9308",
+    "description": "Auth, merchant profile, customer CRUD, and transaction history.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:3000"},
+    {"key": "token", "value": ""},
+    {"key": "customerId", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {"method": "GET", "url": "{{baseUrl}}/health"}
+    },
+    {
+      "name": "Register merchant",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"email\":\"merchant@example.com\",\"password\":\"StrongPass_123\",\"fullName\":\"Demo Merchant\",\"merchantName\":\"Demo Store\",\"phone\":\"0900000000\"}"},
+        "url": "{{baseUrl}}/api/auth/register"
+      }
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"email\":\"merchant@example.com\",\"password\":\"StrongPass_123\"}"},
+        "url": "{{baseUrl}}/api/auth/login"
+      }
+    },
+    {
+      "name": "Get my merchant profile",
+      "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{token}}"}], "url": "{{baseUrl}}/api/merchants/me"}
+    },
+    {
+      "name": "List customers",
+      "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{token}}"}], "url": "{{baseUrl}}/api/customers?page=1&limit=20"}
+    },
+    {
+      "name": "Create customer",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"fullName\":\"Nguyen Van A\",\"email\":\"a@example.com\",\"phone\":\"0912345678\",\"externalRef\":\"CRM-001\"}"},
+        "url": "{{baseUrl}}/api/customers"
+      }
+    },
+    {
+      "name": "Transaction history",
+      "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{token}}"}], "url": "{{baseUrl}}/api/transactions?page=1&limit=20"}
+    }
+  ]
+}
