@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>OctaPoint - Demo Tích Điểm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4 text-blue-600">Hệ Thống Tích Điểm (OctaPoint - Demo)</h1>
+        
+        <div class="mb-6 bg-gray-50 p-4 rounded">
+            <h2 class="font-semibold mb-2">Thực hiện cộng điểm</h2>
+            <div class="flex gap-4">
+                <input type="text" id="userId" placeholder="Nhập ID User (VD: 1)" class="border p-2 rounded w-1/2">
+                <input type="number" id="points" placeholder="Số điểm cộng" class="border p-2 rounded w-1/4">
+                <button onclick="earnPoints()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-1/4">Cộng điểm</button>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="font-semibold mb-2">Lịch sử giao dịch gần đây</h2>
+            <table class="w-full border-collapse border border-gray-300 text-left text-sm">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border border-gray-300 p-2">Mã GD</th>
+                        <th class="border border-gray-300 p-2">User ID</th>
+                        <th class="border border-gray-300 p-2">Số điểm</th>
+                        <th class="border border-gray-300 p-2">Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody id="txTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function earnPoints() {
+            const userId = document.getElementById('userId').value;
+            const points = document.getElementById('points').value;
+
+            if(!userId || !points) {
+                alert('Vui lòng nhập đủ thông tin!');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/earn', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, points: points })
+                });
+                const result = await response.json();
+                alert('Cộng điểm thành công!');
+                loadTransactions(); // 
+            } catch (error) {
+                console.error('Lỗi:', error);
+                alert('Không kết nối được server!');
+            }
+        }
+        async function loadTransactions() {
+            try {
+                const response = await fetch('http://localhost:3000/api/transactions');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('txTableBody');
+                tbody.innerHTML = '';
+                
+                data.forEach(tx => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="border border-gray-300 p-2">${tx.tx_id}</td>
+                            <td class="border border-gray-300 p-2">${tx.user_id}</td>
+                            <td class="border border-gray-300 p-2 text-green-600 font-bold">+${tx.points}</td>
+                            <td class="border border-gray-300 p-2">${tx.created_at}</td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                console.log('Chưa kết nối backend API');
+            }
+        }
+
+        loadTransactions();
+    </script>
+</body>
+</html>
