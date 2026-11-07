@@ -26,6 +26,12 @@ transactionsRouter.get("/", async (req, res, next) => {
     });
     if (!parsed.success) return res.status(400).json({ error: "VALIDATION_ERROR", details: parsed.error.flatten() });
     const { customerId, type, from, to } = parsed.data;
+    if (from && to && new Date(from) > new Date(to)) {
+  return res.status(400).json({
+    error: "INVALID_DATE_RANGE",
+    message: "Ngày bắt đầu không được lớn hơn ngày kết thúc."
+  });
+}
     const where: any = { merchantId, ...(customerId ? { customerId } : {}), ...(type ? { type } : {}) };
     if (from || to) where.createdAt = { ...(from ? { gte: new Date(from) } : {}), ...(to ? { lte: new Date(to) } : {}) };
     const [items, total] = await Promise.all([
