@@ -66,10 +66,30 @@ customersRouter.patch("/:id", async (req, res, next) => {
     if (!merchantId) return res.status(403).json({ error: "NO_MERCHANT" });
     const parsed = updateSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: "VALIDATION_ERROR", details: parsed.error.flatten() });
-    const existing = await prisma.customer.findFirst({ where: { id: req.params.id, merchantId }, select: { id: true } });
-    if (!existing) return res.status(404).json({ error: "NOT_FOUND" });
-    const customer = await prisma.customer.update({ where: { id: existing.id }, data: parsed.data });
-    return res.json({ data: customer });
+    const result = await prisma.customer.updateMany({
+  where: {
+    id: req.params.id,
+    merchantId
+  },
+  data: parsed.data
+});
+
+if (result.count === 0) {
+  return res.status(404).json({ error: "NOT_FOUND" });
+}
+
+const customer = await prisma.customer.findFirst({
+  where: {
+    id: req.params.id,
+    merchantId
+  }
+});
+
+if (!customer) {
+  return res.status(404).json({ error: "NOT_FOUND" });
+}
+
+return res.json({ data: customer });
   } catch (error) { next(error); }
 });
 
@@ -77,9 +97,17 @@ customersRouter.delete("/:id", async (req, res, next) => {
   try {
     const merchantId = tenantId(req);
     if (!merchantId) return res.status(403).json({ error: "NO_MERCHANT" });
-    const existing = await prisma.customer.findFirst({ where: { id: req.params.id, merchantId }, select: { id: true } });
-    if (!existing) return res.status(404).json({ error: "NOT_FOUND" });
-    await prisma.customer.delete({ where: { id: existing.id } });
-    return res.status(204).send();
+    const result = await prisma.customer.deleteMany({
+  where: {
+    id: req.params.id,
+    merchantId
+  }
+});
+
+if (result.count === 0) {
+  return res.status(404).json({ error: "NOT_FOUND" });
+}
+
+return res.status(204).send();
   } catch (error) { next(error); }
 });
