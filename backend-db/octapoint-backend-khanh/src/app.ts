@@ -20,6 +20,12 @@ app.use("/api/transactions", transactionsRouter);
 app.use((_req, res) => res.status(404).json({ error: "NOT_FOUND", message: "Endpoint không tồn tại." }));
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (err?.code === "P2002") return res.status(409).json({ error: "CONFLICT", message: "Dữ liệu bị trùng." });
+  if (err?.code === "P2003") {
+  return res.status(409).json({
+    error: "FOREIGN_KEY_CONSTRAINT",
+    message: "Không thể xóa dữ liệu vì vẫn còn bản ghi liên quan."
+  });
+}
   if (err?.code === "P2025") return res.status(404).json({ error: "NOT_FOUND" });
   console.error(err);
   return res.status(500).json({
