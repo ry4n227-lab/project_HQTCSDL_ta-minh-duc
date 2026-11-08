@@ -9,3 +9,4 @@
 - Xác định nguyên tắc chống giao dịch trùng và phục hồi khi mất kết nối.
 - Bổ sung Prisma schema đơn giản: địa chỉ ví, CreditObject, hash giao dịch và lịch sử chuyển điểm; chuẩn bị ràng buộc CSDL để Khánh review.
 
+- Viết contract Move mint/transfer và 9 unit test.

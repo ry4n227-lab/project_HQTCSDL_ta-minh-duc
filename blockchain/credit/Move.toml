@@ -1,0 +1,6 @@
+[package]
+name = "OctaPointCredit"
+edition = "2024"
+
+[addresses]
+octapoint = "0x0"
