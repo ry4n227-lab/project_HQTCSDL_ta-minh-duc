@@ -16,6 +16,8 @@ enum TransactionType {
   EARN
   REDEEM
   ADJUST
+  TRANSFER_IN
+  TRANSFER_OUT
 }
 
 model Merchant {
@@ -31,6 +33,9 @@ model Merchant {
   customers   Customer[]
   transactions Transaction[]
 
+  suiMintCapId String? @unique @db.VarChar(66)
+  suiSignerAddress String? @unique @db.VarChar(66)
+  creditObjects CreditObject[]
   @@index([status])
   @@index([createdAt])
 }
@@ -64,6 +69,11 @@ model Customer {
   merchant    Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   transactions Transaction[]
 
+  // Public address only; never store private keys here.
+  suiAddress String? @unique @db.VarChar(66)
+  creditObjects CreditObject[]
+
+  @@unique([id, merchantId])
   @@unique([merchantId, externalRef])
   @@index([merchantId, createdAt])
   @@index([merchantId, email])
@@ -80,9 +90,23 @@ model Transaction {
   reference   String?         @db.VarChar(120)
   createdAt   DateTime        @default(now())
   merchant    Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-  customer    Customer        @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customer    Customer        @relation(fields: [customerId, merchantId], references: [id, merchantId], onDelete: Restrict)
 
+  txDigest String? @db.VarChar(64)
+
+  @@unique([txDigest, customerId, type])
   @@index([merchantId, createdAt(sort: Desc)])
   @@index([customerId, createdAt(sort: Desc)])
   @@index([merchantId, type, createdAt(sort: Desc)])
+}
+
+model CreditObject {
+  objectId String @id @db.VarChar(66)
+  merchantId String @db.Uuid
+  ownerCustomerId String @db.Uuid
+  points Int
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  ownerCustomer Customer @relation(fields: [ownerCustomerId, merchantId], references: [id, merchantId], onDelete: Restrict)
+
+  @@index([merchantId, ownerCustomerId])
 }
