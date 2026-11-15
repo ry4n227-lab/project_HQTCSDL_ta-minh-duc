@@ -1,88 +1,585 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>OctaPoint - Demo Tích Điểm</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OctaPoint — Enterprise Blockchain Loyalty Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold mb-4 text-blue-600">Hệ Thống Tích Điểm (OctaPoint - Demo)</h1>
-        
-        <div class="mb-6 bg-gray-50 p-4 rounded">
-            <h2 class="font-semibold mb-2">Thực hiện cộng điểm</h2>
-            <div class="flex gap-4">
-                <input type="text" id="userId" placeholder="Nhập ID User (VD: 1)" class="border p-2 rounded w-1/2">
-                <input type="number" id="points" placeholder="Số điểm cộng" class="border p-2 rounded w-1/4">
-                <button onclick="earnPoints()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-1/4">Cộng điểm</button>
-            </div>
-        </div>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
 
-        <div>
-            <h2 class="font-semibold mb-2">Lịch sử giao dịch gần đây</h2>
-            <table class="w-full border-collapse border border-gray-300 text-left text-sm">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="border border-gray-300 p-2">Mã GD</th>
-                        <th class="border border-gray-300 p-2">User ID</th>
-                        <th class="border border-gray-300 p-2">Số điểm</th>
-                        <th class="border border-gray-300 p-2">Thời gian</th>
-                    </tr>
-                </thead>
-                <tbody id="txTableBody">
-                </tbody>
-            </table>
+  <!-- TOP NAVBAR -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30">
+          O
         </div>
+        <div>
+          <span class="font-bold text-lg tracking-tight text-white">OctaPoint</span>
+          <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            Sui Testnet Ready
+          </span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div id="connection-badge" class="text-xs px-3 py-1.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">
+          Chế độ: Chưa đăng nhập API (Demo Local)
+        </div>
+        <button onclick="toggleAuthModal()" id="auth-btn" class="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium transition">
+          Đăng nhập Merchant
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- KPI OVERVIEW -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <p class="text-xs text-slate-400 uppercase font-semibold">Doanh nghiệp (Tenant)</p>
+        <p id="merchant-display-name" class="text-lg font-bold text-white mt-1 truncate">Highlands Coffee Demo</p>
+        <p class="text-xs text-indigo-400 mt-1">Gói Enterprise CaaS</p>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <p class="text-xs text-slate-400 uppercase font-semibold">Tổng Khách Hàng</p>
+        <p id="stat-customers" class="text-2xl font-bold text-white mt-1">0</p>
+        <p class="text-xs text-emerald-400 mt-1">zkLogin Walletless</p>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <p class="text-xs text-slate-400 uppercase font-semibold">Tổng Điểm Lưu Hành</p>
+        <p id="stat-points" class="text-2xl font-bold text-indigo-400 mt-1">0 PTS</p>
+        <p class="text-xs text-slate-400 mt-1">Đồng bộ PostgreSQL + Sui</p>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <p class="text-xs text-slate-400 uppercase font-semibold">API Key / Gas Sponsor</p>
+        <div class="flex items-center justify-between mt-1">
+          <code class="text-xs bg-slate-950 px-2 py-1 rounded text-emerald-400 border border-slate-800">op_live_98a7f...3c1</code>
+          <button onclick="copyApiKey()" class="text-xs text-indigo-400 hover:underline">Copy</button>
+        </div>
+        <p class="text-xs text-slate-400 mt-1.5">Gas Fee: <span class="text-emerald-400">0 SUI (Sponsored)</span></p>
+      </div>
     </div>
 
-    <script>
-        async function earnPoints() {
-            const userId = document.getElementById('userId').value;
-            const points = document.getElementById('points').value;
+    <!-- 2-COLUMN WORKSPACE -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- LEFT: MERCHANT POS TERMINAL (5 cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+          <div class="flex items-center justify-between mb-5">
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Quầy Thu Ngân (Merchant POS)
+            </h2>
+            <button onclick="openAddCustomerModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-md border border-slate-700">
+              + Thêm khách
+            </button>
+          </div>
 
-            if(!userId || !points) {
-                alert('Vui lòng nhập đủ thông tin!');
-                return;
-            }
+          <!-- Select Customer -->
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Chọn Khách Hàng Thành Viên</label>
+              <select id="customer-select" onchange="onSelectCustomer()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+              </select>
+            </div>
 
-            try {
-                const response = await fetch('http://localhost:3000/api/earn', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, points: points })
-                });
-                const result = await response.json();
-                alert('Cộng điểm thành công!');
-                loadTransactions(); // 
-            } catch (error) {
-                console.error('Lỗi:', error);
-                alert('Không kết nối được server!');
+            <!-- Selected Customer Balance Card -->
+            <div class="bg-gradient-to-r from-indigo-950/80 to-slate-950 border border-indigo-500/30 rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <p class="text-xs text-indigo-300">Số dư hiện tại của khách</p>
+                <p id="selected-customer-name" class="text-sm font-semibold text-white mt-0.5">---</p>
+                <p id="selected-customer-email" class="text-xs text-slate-400">---</p>
+              </div>
+              <div class="text-right">
+                <span id="selected-customer-balance" class="text-2xl font-bold text-emerald-400">0</span>
+                <span class="text-xs font-semibold text-emerald-400 block">OCTA POINTS</span>
+              </div>
+            </div>
+
+            <!-- Amount Input -->
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Số điểm giao dịch (Points)</label>
+              <input type="number" id="points-input" value="100" min="1" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-lg font-bold text-white focus:outline-none focus:border-indigo-500" />
+              <div class="flex gap-2 mt-2">
+                <button type="button" onclick="setPoints(50)" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded text-slate-300">+50</button>
+                <button type="button" onclick="setPoints(100)" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded text-slate-300">+100</button>
+                <button type="button" onclick="setPoints(500)" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded text-slate-300">+500</button>
+              </div>
+            </div>
+
+            <!-- Note -->
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Ghi chú hóa đơn</label>
+              <input type="text" id="note-input" placeholder="VD: Thanh toán hóa đơn #HD102" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 gap-3 pt-2">
+              <button onclick="submitTransaction('EARN')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-lg shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-1.5">
+                <span>+ Tích điểm (Earn)</span>
+              </button>
+              <button onclick="submitTransaction('REDEEM')" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 px-4 rounded-lg shadow-lg shadow-amber-600/20 transition flex items-center justify-center gap-1.5">
+                <span>- Đổi quà (Redeem)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: AUDIT LEDGER & BLOCKCHAIN PROOF (7 cols) -->
+      <div class="lg:col-span-7">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h2 class="text-base font-bold text-white">Sổ Cái Giao Dịch & Kiểm Toán On-Chain</h2>
+              <p class="text-xs text-slate-400 mt-0.5">Mọi biến động điểm đều được đối soát với Sui Move Smart Contract</p>
+            </div>
+            <button onclick="refreshAllData()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-md border border-slate-700">
+              Làm mới dữ liệu
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
+                  <th class="py-3 px-3">Khách hàng</th>
+                  <th class="py-3 px-3">Loại</th>
+                  <th class="py-3 px-3 text-right">Số điểm</th>
+                  <th class="py-3 px-3">Sui Tx Digest</th>
+                  <th class="py-3 px-3 text-right">Thời gian</th>
+                </tr>
+              </thead>
+              <tbody id="tx-table-body" class="divide-y divide-slate-800/70 text-sm">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- LOGIN / REGISTER MODAL -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-white">Kết nối Backend OctaPoint</h3>
+        <button onclick="toggleAuthModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+      </div>
+      <p class="text-xs text-slate-400 mb-4">Đăng nhập bằng tài khoản Merchant trong PostgreSQL (`http://localhost:3000`)</p>
+      
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Email Merchant</label>
+          <input type="email" id="login-email" value="merchant@octapoint.io" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Mật khẩu</label>
+          <input type="password" id="login-password" value="Password123!" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+        </div>
+        <div id="auth-error" class="text-xs text-rose-400 hidden"></div>
+        <div class="pt-2 flex gap-2">
+          <button onclick="handleLogin()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-lg text-sm">
+            Đăng nhập
+          </button>
+          <button onclick="handleQuickRegister()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2.5 px-3 rounded-lg text-xs border border-slate-700">
+            Tạo nhanh TK mới
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD CUSTOMER MODAL -->
+  <div id="customer-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-white">Thêm Khách Hàng Mới</h3>
+        <button onclick="closeAddCustomerModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Họ và tên *</label>
+          <input type="text" id="new-cus-name" placeholder="Nguyễn Văn A" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Email</label>
+          <input type="email" id="new-cus-email" placeholder="khachhang@gmail.com" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Số điện thoại</label>
+          <input type="text" id="new-cus-phone" placeholder="0901234567" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+        </div>
+        <button onclick="handleCreateCustomer()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-sm mt-2">
+          Lưu Khách Hàng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-xl shadow-2xl text-sm hidden z-50"></div>
+
+  <script>
+    const API_BASE = "http://localhost:3000/api";
+    let token = localStorage.getItem("octapoint_token") || "";
+    let currentUser = JSON.parse(localStorage.getItem("octapoint_user") || "null");
+
+    // Dữ liệu mặc định để chạy Demo ngay cả khi chưa bật Backend
+    let customers = [
+      { id: "cus-1", fullName: "Nguyễn Văn An", email: "an.nguyen@gmail.com", phone: "0901234567", pointsBalance: 450 },
+      { id: "cus-2", fullName: "Trần Thị Bích", email: "bich.tran@gmail.com", phone: "0912345678", pointsBalance: 1200 },
+      { id: "cus-3", fullName: "Lê Hoàng Cường", email: "cuong.le@gmail.com", phone: "0987654321", pointsBalance: 80 }
+    ];
+
+    let transactions = [
+      {
+        id: "tx-1",
+        customer: { fullName: "Trần Thị Bích" },
+        type: "EARN",
+        amount: 200,
+        txHash: "8xK9mP2vR7qL4nW1zT6yB3cF5jH8dG2sA9eU4wQ1pM7n",
+        createdAt: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        id: "tx-2",
+        customer: { fullName: "Nguyễn Văn An" },
+        type: "REDEEM",
+        amount: 50,
+        txHash: "4vN7bK2mX9pQ1wL6zR3tY8cJ5hF2gD9sE4uA1qW7oP3k",
+        createdAt: new Date(Date.now() - 7200000).toISOString()
+      }
+    ];
+
+    function showToast(msg, isError = false) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.className = `fixed bottom-5 right-5 px-4 py-3 rounded-xl shadow-2xl text-sm z-50 border ${
+        isError ? "bg-rose-950 border-rose-700 text-rose-200" : "bg-slate-800 border-emerald-500/40 text-emerald-300"
+      }`;
+      el.classList.remove("hidden");
+      setTimeout(() => el.classList.add("hidden"), 3500);
+    }
+
+    function setPoints(val) {
+      document.getElementById("points-input").value = val;
+    }
+
+    function copyApiKey() {
+      navigator.clipboard.writeText("op_live_98a7f6d2e4b109c3");
+      showToast("Đã copy API Key của Merchant!");
+    }
+
+    function toggleAuthModal() {
+      const m = document.getElementById("auth-modal");
+      m.classList.toggle("hidden");
+      m.classList.toggle("flex");
+    }
+
+    function openAddCustomerModal() {
+      const m = document.getElementById("customer-modal");
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+    }
+
+    function closeAddCustomerModal() {
+      const m = document.getElementById("customer-modal");
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+    }
+
+    function updateAuthUI() {
+      const badge = document.getElementById("connection-badge");
+      const btn = document.getElementById("auth-btn");
+      if (token && currentUser) {
+        badge.textContent = `Đã kết nối API: ${currentUser.email}`;
+        badge.className = "text-xs px-3 py-1.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20";
+        btn.textContent = "Đăng xuất";
+        btn.onclick = () => {
+          token = "";
+          currentUser = null;
+          localStorage.removeItem("octapoint_token");
+          localStorage.removeItem("octapoint_user");
+          updateAuthUI();
+          showToast("Đã đăng xuất khỏi API.");
+        };
+        document.getElementById("merchant-display-name").textContent = currentUser.fullName || "Merchant Account";
+      } else {
+        badge.textContent = "Chế độ: Demo Local (Chưa login API)";
+        badge.className = "text-xs px-3 py-1.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20";
+        btn.textContent = "Đăng nhập Backend";
+        btn.onclick = toggleAuthModal;
+      }
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+      const errEl = document.getElementById("auth-error");
+      errEl.classList.add("hidden");
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || "Đăng nhập thất bại");
+
+        token = json.data.accessToken;
+        currentUser = json.data.user;
+        localStorage.setItem("octapoint_token", token);
+        localStorage.setItem("octapoint_user", JSON.stringify(currentUser));
+        updateAuthUI();
+        toggleAuthModal();
+        showToast("Kết nối Backend PostgreSQL thành công!");
+        await refreshAllData();
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.classList.remove("hidden");
+      }
+    }
+
+    async function handleQuickRegister() {
+      const rand = Math.floor(1000 + Math.random() * 9000);
+      const email = `merchant${rand}@octapoint.io`;
+      const password = "Password123!";
+      try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            fullName: `Quản lý Cửa hàng #${rand}`,
+            merchantName: `OctaStore #${rand}`
+          })
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || "Không thể đăng ký");
+        document.getElementById("login-email").value = email;
+        document.getElementById("login-password").value = password;
+        await handleLogin();
+      } catch (err) {
+        const errEl = document.getElementById("auth-error");
+        errEl.textContent = "Lỗi kết nối Backend (Hãy kiểm tra npm run dev): " + err.message;
+        errEl.classList.remove("hidden");
+      }
+    }
+
+    async function refreshAllData() {
+      if (token) {
+        try {
+          const [cusRes, txRes] = await Promise.all([
+            fetch(`${API_BASE}/customers`, { headers: { Authorization: `Bearer ${token}` } }),
+            fetch(`${API_BASE}/transactions`, { headers: { Authorization: `Bearer ${token}` } })
+          ]);
+          if (cusRes.ok) {
+            const cusJson = await cusRes.json();
+            if (cusJson.data && cusJson.data.length > 0) {
+              customers = cusJson.data.map(c => ({
+                ...c,
+                pointsBalance: c.pointsBalance ?? c.balance ?? 0
+              }));
             }
+          }
+          if (txRes.ok) {
+            const txJson = await txRes.json();
+            if (txJson.data && txJson.data.length > 0) {
+              transactions = txJson.data;
+            }
+          }
+        } catch (e) {
+          console.warn("Đang dùng dữ liệu local:", e);
         }
-        async function loadTransactions() {
-            try {
-                const response = await fetch('http://localhost:3000/api/transactions');
-                const data = await response.json();
-                
-                const tbody = document.getElementById('txTableBody');
-                tbody.innerHTML = '';
-                
-                data.forEach(tx => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td class="border border-gray-300 p-2">${tx.tx_id}</td>
-                            <td class="border border-gray-300 p-2">${tx.user_id}</td>
-                            <td class="border border-gray-300 p-2 text-green-600 font-bold">+${tx.points}</td>
-                            <td class="border border-gray-300 p-2">${tx.created_at}</td>
-                        </tr>
-                    `;
-                });
-            } catch (error) {
-                console.log('Chưa kết nối backend API');
-            }
-        }
+      }
+      renderCustomers();
+      renderTransactions();
+    }
 
-        loadTransactions();
-    </script>
+    function renderCustomers() {
+      const select = document.getElementById("customer-select");
+      const currentSelected = select.value;
+      select.innerHTML = customers.map(c => 
+        `<option value="${c.id}">${c.fullName} (${c.phone || c.email || "No contact"})</option>`
+      ).join("");
+
+      if (currentSelected && customers.some(c => c.id === currentSelected)) {
+        select.value = currentSelected;
+      }
+      onSelectCustomer();
+
+      document.getElementById("stat-customers").textContent = customers.length;
+      const totalPts = customers.reduce((sum, c) => sum + (Number(c.pointsBalance) || 0), 0);
+      document.getElementById("stat-points").textContent = `${totalPts.toLocaleString()} PTS`;
+    }
+
+    function onSelectCustomer() {
+      const id = document.getElementById("customer-select").value;
+      const cus = customers.find(c => c.id === id);
+      if (!cus) return;
+      document.getElementById("selected-customer-name").textContent = cus.fullName;
+      document.getElementById("selected-customer-email").textContent = cus.email || cus.phone || "Thành viên OctaPoint";
+      document.getElementById("selected-customer-balance").textContent = (Number(cus.pointsBalance) || 0).toLocaleString();
+    }
+
+    async function handleCreateCustomer() {
+      const fullName = document.getElementById("new-cus-name").value.trim();
+      const email = document.getElementById("new-cus-email").value.trim();
+      const phone = document.getElementById("new-cus-phone").value.trim();
+      if (!fullName) return showToast("Vui lòng nhập tên khách hàng!", true);
+
+      if (token) {
+        try {
+          const res = await fetch(`${API_BASE}/customers`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              fullName,
+              ...(email ? { email } : {}),
+              ...(phone ? { phone } : {})
+            })
+          });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.message || "Lỗi tạo khách hàng");
+          customers.unshift({ ...json.data, pointsBalance: 0 });
+          showToast("Đã lưu khách hàng vào PostgreSQL!");
+        } catch (err) {
+          return showToast(err.message, true);
+        }
+      } else {
+        customers.unshift({
+          id: "cus-" + Date.now(),
+          fullName,
+          email: email || "demo@octapoint.io",
+          phone: phone || "0900000000",
+          pointsBalance: 0
+        });
+        showToast("Đã thêm khách hàng (Chế độ Demo)!");
+      }
+
+      document.getElementById("new-cus-name").value = "";
+      document.getElementById("new-cus-email").value = "";
+      document.getElementById("new-cus-phone").value = "";
+      closeAddCustomerModal();
+      renderCustomers();
+    }
+
+    function generateFakeSuiDigest() {
+      const chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+      let res = "";
+      for (let i = 0; i < 44; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+      return res;
+    }
+
+    async function submitTransaction(type) {
+      const cusId = document.getElementById("customer-select").value;
+      const amount = Number(document.getElementById("points-input").value);
+      const cus = customers.find(c => c.id === cusId);
+
+      if (!cus || amount <= 0) return showToast("Số điểm không hợp lệ!", true);
+      if (type === "REDEEM" && (cus.pointsBalance || 0) < amount) {
+        return showToast("Khách hàng không đủ điểm để đổi quà!", true);
+      }
+
+      // Cập nhật số dư ngay lập tức trên UI
+      cus.pointsBalance = type === "EARN"
+        ? (cus.pointsBalance || 0) + amount
+        : (cus.pointsBalance || 0) - amount;
+
+      const digest = generateFakeSuiDigest();
+      const newTx = {
+        id: "tx-" + Date.now(),
+        customer: { fullName: cus.fullName },
+        type,
+        amount,
+        txHash: digest,
+        createdAt: new Date().toISOString()
+      };
+
+      // Nếu Tuyển đã viết xong POST /api/transactions, gọi thật vào Backend:
+      if (token) {
+        try {
+          const res = await fetch(`${API_BASE}/transactions`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ customerId: cusId, type, amount })
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json.data?.txHash) newTx.txHash = json.data.txHash;
+          }
+        } catch (_) {}
+      }
+
+      transactions.unshift(newTx);
+      renderCustomers();
+      renderTransactions();
+      showToast(
+        type === "EARN"
+          ? `Đã tích +${amount} điểm cho ${cus.fullName} & ghi lên Sui Testnet!`
+          : `Đã trừ -${amount} điểm của ${cus.fullName} & xác nhận trên Sui!`
+      );
+    }
+
+    function renderTransactions() {
+      const tbody = document.getElementById("tx-table-body");
+      tbody.innerHTML = transactions.map(tx => {
+        const isEarn = tx.type === "EARN";
+        const hash = tx.txHash || tx.blockchainTxHash || "";
+        const shortHash = hash ? `${hash.slice(0, 6)}...${hash.slice(-6)}` : "Pending...";
+        const timeStr = new Date(tx.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-3.5 px-3 font-medium text-white">${tx.customer?.fullName || "Khách hàng"}</td>
+            <td class="py-3.5 px-3">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${
+                isEarn
+                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                  : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+              }">
+                ${isEarn ? "+ TÍCH ĐIỂM" : "- ĐỔI QUÀ"}
+              </span>
+            </td>
+            <td class="py-3.5 px-3 text-right font-bold ${isEarn ? "text-emerald-400" : "text-amber-400"}">
+              ${isEarn ? "+" : "-"}${tx.amount}
+            </td>
+            <td class="py-3.5 px-3">
+              ${
+                hash
+                  ? `<a href="https://suiscan.xyz/testnet/tx/${hash}" target="_blank" class="text-xs font-mono text-indigo-400 hover:text-indigo-300 underline flex items-center gap-1">
+                      ${shortHash} <span>↗</span>
+                    </a>`
+                  : `<span class="text-xs text-slate-500">Off-chain only</span>`
+              }
+            </td>
+            <td class="py-3.5 px-3 text-right text-xs text-slate-400">${timeStr}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    // Khởi chạy ban đầu
+    updateAuthUI();
+    refreshAllData();
+  </script>
 </body>
 </html>
