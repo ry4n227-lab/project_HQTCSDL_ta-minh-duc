@@ -1,0 +1,21 @@
+﻿{
+  "name": "octapoint-mcp-server",
+  "version": "1.0.0",
+  "description": "OctaPoint MCP Server for AI Agents (get_balance, get_history)",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test:mcp": "node dist/test-mcp.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.25.28"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
