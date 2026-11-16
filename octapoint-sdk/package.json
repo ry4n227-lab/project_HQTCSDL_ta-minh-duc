@@ -1,0 +1,17 @@
+{
+  "name": "octapoint-sdk",
+  "version": "1.0.0",
+  "description": "OctaPoint TypeScript Developer SDK for Merchant & Loyalty Integration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "demo": "tsx src/demo.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
