@@ -36,6 +36,7 @@ model Merchant {
   suiMintCapId String? @unique @db.VarChar(66)
   suiSignerAddress String? @unique @db.VarChar(66)
   creditObjects CreditObject[]
+  creditRequests CreditRequest[]
   @@index([status])
   @@index([createdAt])
 }
@@ -109,4 +110,20 @@ model CreditObject {
   ownerCustomer Customer @relation(fields: [ownerCustomerId, merchantId], references: [id, merchantId], onDelete: Restrict)
 
   @@index([merchantId, ownerCustomerId])
+}
+
+// Minimal durable receipt: one request, one signed transaction, no worker/queue.
+model CreditRequest {
+  id String @id @default(uuid()) @db.Uuid
+  merchantId String @db.Uuid
+  key String @db.VarChar(160)
+  requestHash String @db.VarChar(64)
+  signedTx Json?
+  txDigest String? @unique @db.VarChar(64)
+  status String @default("PENDING") @db.VarChar(20)
+  result Json?
+  createdAt DateTime @default(now())
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+
+  @@unique([merchantId, key])
 }

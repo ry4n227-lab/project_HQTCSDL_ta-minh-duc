@@ -1,0 +1,8 @@
+{
+  "network": "testnet",
+  "packageId": "0x408539eb28cf21e241032100d3ac0f8221145af1cbf60a46345e384eaca68b9a",
+  "platformCapId": "0xc76e5687d765d462fa2c4a678272b4224fa361d5ceffb3328324e9429e3666d3",
+  "publisher": "0x4b50ac4e4bc389ec371798ea502701697eb5e7c9bb1ae1757183ee1e64e767d4",
+  "demoMintCapId": "0xff17e6f6fa413113f18fc9dfc613d3a1edd25aef0eccb5bb5a38878ab568b3a6",
+  "publishDigest": "5b7NdABMGGuzsRp33PfrDqudyEXyDHpe9m4RodfaFVp"
+}

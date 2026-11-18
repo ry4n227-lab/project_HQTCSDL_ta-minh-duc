@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { app } from "./app";
 import { prisma } from "./db";
+import { closeCreditPool } from "./credit/service";
 
 const port = Number(process.env.PORT || 3000);
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
@@ -11,6 +12,7 @@ const server = app.listen(port, () => console.log(`OctaPoint API listening on :$
 async function shutdown() {
   server.close(async () => {
     await prisma.$disconnect();
+    await closeCreditPool();
     process.exit(0);
   });
 }

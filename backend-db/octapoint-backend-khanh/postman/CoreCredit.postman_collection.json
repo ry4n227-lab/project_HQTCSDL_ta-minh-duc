@@ -1,0 +1,270 @@
+{
+  "info": {
+    "name": "Core Credit ? Tuyen",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "customerA",
+      "value": "7b5eb4e5-1695-44a0-9c41-dd713e59b28c"
+    },
+    {
+      "key": "customerB",
+      "value": "564a2566-a8c6-443d-8b33-e486e7a93af2"
+    },
+    {
+      "key": "invoice",
+      "value": "HD-DEMO-001"
+    },
+    {
+      "key": "transferRef",
+      "value": "TR-DEMO-001"
+    },
+    {
+      "key": "objectId",
+      "value": ""
+    },
+    {
+      "key": "requestId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Login demo",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"tuyen.demo@octapoint.local\",\n  \"password\": \"DemoPoints_12345!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if(pm.response.code===200) pm.collectionVariables.set('token', pm.response.json().data.accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mint 25 points",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/credits/mint",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"{{customerA}}\",\n  \"reference\": \"{{invoice}}\",\n  \"amountVnd\": 250000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const d=pm.response.json().data;if(d){if(d.objectId)pm.collectionVariables.set('objectId',d.objectId);if(d.requestId)pm.collectionVariables.set('requestId',d.requestId);}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List customer A objects",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/credits?customerId={{customerA}}"
+      }
+    },
+    {
+      "name": "Transfer whole object A to B",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/credits/transfer",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sourceCustomerId\": \"{{customerA}}\",\n  \"recipientCustomerId\": \"{{customerB}}\",\n  \"reference\": \"{{transferRef}}\",\n  \"objectId\": \"{{objectId}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const d=pm.response.json().data;if(d&&d.requestId)pm.collectionVariables.set('requestId',d.requestId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Request status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/credits/requests/{{requestId}}"
+      }
+    },
+    {
+      "name": "Customer B balance",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/customers/{{customerB}}"
+      }
+    },
+    {
+      "name": "History with blockchain hash",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/transactions?customerId={{customerB}}&type=TRANSFER_IN"
+      }
+    },
+    {
+      "name": "Create EARN via POST transactions",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/transactions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"EARN\",\n  \"customerId\": \"{{customerA}}\",\n  \"reference\": \"{{invoice}}\",\n  \"amountVnd\": 250000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const d=pm.response.json().data;if(d){if(d.objectId)pm.collectionVariables.set('objectId',d.objectId);if(d.requestId)pm.collectionVariables.set('requestId',d.requestId);}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create TRANSFER via POST transactions",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/transactions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"TRANSFER\",\n  \"sourceCustomerId\": \"{{customerA}}\",\n  \"recipientCustomerId\": \"{{customerB}}\",\n  \"reference\": \"{{transferRef}}\",\n  \"objectId\": \"{{objectId}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const d=pm.response.json().data;if(d&&d.requestId)pm.collectionVariables.set('requestId',d.requestId);"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

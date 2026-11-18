@@ -5,6 +5,7 @@ import { authRouter } from "./routes/auth";
 import { merchantsRouter } from "./routes/merchants";
 import { customersRouter } from "./routes/customers";
 import { transactionsRouter } from "./routes/transactions";
+import { creditsRouter } from "./routes/credits";
 
 export const app = express();
 app.use(helmet());
@@ -16,6 +17,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/merchants", merchantsRouter);
 app.use("/api/customers", customersRouter);
 app.use("/api/transactions", transactionsRouter);
+app.use("/api/credits", creditsRouter);
 
 app.use((_req, res) => res.status(404).json({ error: "NOT_FOUND", message: "Endpoint không tồn tại." }));
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
