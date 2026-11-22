@@ -45,7 +45,7 @@ All endpoints except health and auth require `Authorization: Bearer <accessToken
 | GET | `/api/transactions?page=1&limit=20` | Paginated transaction history |
 | GET | `/api/transactions/:id` | Get one transaction from own merchant |
 
-Transaction filters: `customerId`, `type=EARN|REDEEM|ADJUST`, `from`, `to` (ISO datetime with timezone).
+Transaction filters: `customerId`, `type=EARN|REDEEM|ADJUST|TRANSFER_IN|TRANSFER_OUT`, `from`, `to` (ISO datetime with timezone).
 
 ## Data model and database decisions
 - `Merchant` has many `User`, `Customer`, and `Transaction` records.
