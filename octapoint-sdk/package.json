@@ -6,11 +6,15 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "demo": "tsx src/demo.ts"
+    "demo": "tsx src/demo.ts",
+    "seed:demo": "tsx src/seed-demo.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "pg": "^8.23.1"
+  },
   "devDependencies": {
     "@types/node": "^22.15.21",
+    "@types/pg": "^8.23.1",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }
