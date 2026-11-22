@@ -46,7 +46,9 @@ All endpoints except health and auth require `Authorization: Bearer <accessToken
 | GET | `/api/transactions/:id` | Get one transaction from own merchant |
 
 Transaction filters: `customerId`, `type=EARN|REDEEM|ADJUST|TRANSFER_IN|TRANSFER_OUT`, `from`, `to` (ISO datetime with timezone).
-
+Example:
+- GET `/api/transactions?type=EARN&page=1&limit=20`
+- GET `/api/transactions?customerId=<customerId>&from=2026-11-01T00:00:00Z&to=2026-11-30T23:59:59Z`
 ## Data model and database decisions
 - `Merchant` has many `User`, `Customer`, and `Transaction` records.
 - Every customer and transaction is scoped by `merchantId` to isolate tenants.
