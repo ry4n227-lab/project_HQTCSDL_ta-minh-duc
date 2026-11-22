@@ -83,7 +83,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "get_history",
         description:
-          "Tra cứu lịch sử giao dịch điểm thưởng (EARN, REDEEM, ADJUST) từ PostgreSQL API.",
+          "Tra cứu lịch sử giao dịch điểm thưởng (EARN, REDEEM, ADJUST, TRANSFER_IN, TRANSFER_OUT) từ PostgreSQL API.",
         inputSchema: {
           type: "object",
           properties: {
@@ -93,8 +93,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             type: {
               type: "string",
-              enum: ["EARN", "REDEEM", "ADJUST"],
-              description: "Lọc theo loại giao dịch: EARN (cộng điểm), REDEEM (đổi điểm), ADJUST (điều chỉnh)",
+              enum: ["EARN", "REDEEM", "ADJUST", "TRANSFER_IN", "TRANSFER_OUT"],
+              description:
+                "Lọc theo loại giao dịch: EARN (cộng điểm), REDEEM (đổi điểm), ADJUST (điều chỉnh), TRANSFER_IN (nhận chuyển điểm), TRANSFER_OUT (chuyển điểm đi)",
             },
             page: {
               type: "number",

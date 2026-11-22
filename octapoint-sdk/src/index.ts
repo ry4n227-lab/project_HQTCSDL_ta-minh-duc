@@ -1,4 +1,4 @@
-export interface OctaPointConfig {
+﻿export interface OctaPointConfig {
   baseUrl?: string;
   accessToken?: string;
 }
@@ -52,6 +52,25 @@ export interface TransactionRecord {
     email?: string | null;
     phone?: string | null;
   };
+}
+
+export interface CreditObjectRecord {
+  id: string;
+  objectId: string;
+  customerId: string;
+  merchantId: string;
+  points: number;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: unknown;
+}
+
+export interface CreditRequestResponse {
+  requestId: string;
+  status: string;
+  txDigest?: string | null;
+  [key: string]: unknown;
 }
 
 export class OctaPointSDK {
@@ -182,12 +201,12 @@ export class OctaPointSDK {
     };
   }
 
-  // 9. Tra cứu lịch sử giao dịch điểm (get_history)
+  // 9. Tra cứu lịch sử giao dịch điểm (get_history - hỗ trợ cả TRANSFER_IN / TRANSFER_OUT)
   async getHistory(params?: {
     page?: number;
     limit?: number;
     customerId?: string;
-    type?: "EARN" | "REDEEM" | "ADJUST";
+    type?: TransactionType;
     from?: string;
     to?: string;
   }) {
@@ -200,5 +219,70 @@ export class OctaPointSDK {
     if (params?.to) query.set("to", params.to);
     const qs = query.toString() ? `?${query.toString()}` : "";
     return this.request<{ data: TransactionRecord[]; pagination: Pagination }>(`/api/transactions${qs}`);
+  }
+
+  // 10. Mint điểm theo hóa đơn (Core Credit API)
+  async mintCredits(input: {
+    customerId: string;
+    reference: string;
+    amountVnd: number;
+  }) {
+    const res = await this.request<{ data: CreditRequestResponse }>("/api/credits/mint", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+    return res.data;
+  }
+
+  // 11. Chuyển toàn bộ Credit object giữa 2 khách hàng (Core Credit API)
+  async transferCredits(input: {
+    sourceCustomerId: string;
+    recipientCustomerId: string;
+    objectId: string;
+    reference: string;
+  }) {
+    const res = await this.request<{ data: CreditRequestResponse }>("/api/credits/transfer", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+    return res.data;
+  }
+
+  // 12. Lấy danh sách Credit objects của một khách hàng
+  async listCredits(params: { customerId: string; page?: number; limit?: number }) {
+    const query = new URLSearchParams();
+    query.set("customerId", params.customerId);
+    if (params.page) query.set("page", String(params.page));
+    if (params.limit) query.set("limit", String(params.limit));
+    return this.request<{ data: CreditObjectRecord[]; pagination?: Pagination }>(
+      `/api/credits?${query.toString()}`
+    );
+  }
+
+  // 13. Kiểm tra trạng thái và txDigest của một yêu cầu Credit
+  async getCreditRequest(requestId: string) {
+    const res = await this.request<{ data: CreditRequestResponse }>(
+      `/api/credits/requests/${requestId}`
+    );
+    return res.data;
+  }
+
+  // 14. Tạo giao dịch chung (EARN hoặc TRANSFER) qua POST /api/transactions
+  async createTransaction(
+    input:
+      | { type: "EARN"; customerId: string; reference: string; amountVnd: number }
+      | {
+          type: "TRANSFER";
+          sourceCustomerId: string;
+          recipientCustomerId: string;
+          objectId: string;
+          reference: string;
+        }
+  ) {
+    const res = await this.request<{ data: CreditRequestResponse }>("/api/transactions", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+    return res.data;
   }
 }
